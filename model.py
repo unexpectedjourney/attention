@@ -299,3 +299,14 @@ class Transformer(nn.Module):
         )
         transformer = Transformer.initialize(transformer)
         return transformer
+
+
+def get_model(config, vocab_src_len, vocab_tgt_len):
+    model = Transformer.build_transformer(
+        vocab_src_len,
+        vocab_tgt_len,
+        config["seq_len"],
+        config['seq_len'],
+        d_model=config['d_model']
+    )
+    return model
