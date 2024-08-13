@@ -1,3 +1,5 @@
+import math
+
 import torch
 import torch.nn as nn
 
@@ -22,7 +24,7 @@ class PositionalEncodding(nn.Module):
 
         position = torch.arange(0, seq_len, dtype=torch.float).unsqueeze(1)
         div_term = torch.exp(
-            torch.arrange(0, d_model, 2, dtype=torch.float) * (-torch.log(10000.0) / d_model)
+            torch.arange(0, d_model, 2, dtype=torch.float) * (-math.log(10000.0) / d_model)
         )
         pe = torch.zeros(seq_len, d_model)
         pe[:, 0, ::2] = torch.sin(position * div_term)
@@ -84,7 +86,7 @@ class MultiHeadAttention(nn.Module):
     @staticmethod
     def attention(query, key, value, mask, dropout):
         d_k = query.shape[-1]
-        attention_scores = (query @ key.transpose(-2, -1)) / torch.sqrt(d_k)
+        attention_scores = (query @ key.transpose(-2, -1)) / math.sqrt(d_k)
 
         if mask is not None:
             attention_scores.masked_fill_(mask == 0, -1e9)
@@ -235,14 +237,14 @@ class Transformer(nn.Module):
         x = self.projection_layer(x)
         return x
 
-    @classmethod
+    @staticmethod
     def initialize(transformer):
         for p in transformer.parameters():
             if p.dim() > 1:
                 nn.init.xavier_uniform_(p)
         return transformer
 
-    @classmethod
+    @staticmethod
     def build_transformer(
         src_vocab_size,
         tgt_vocab_size,
@@ -256,8 +258,8 @@ class Transformer(nn.Module):
     ):
         src_embed = InputEmbedding(d_model, src_vocab_size)
         tgt_embed = InputEmbedding(d_model, tgt_vocab_size)
-        src_pos = PositionalEncodding(d_model, src_seq_len)
-        tgt_pos = PositionalEncodding(d_model, tgt_seq_len)
+        src_pos = PositionalEncodding(d_model, src_seq_len, dropout_value)
+        tgt_pos = PositionalEncodding(d_model, tgt_seq_len, dropout_value)
 
         encoder_layers = []
         for _ in range(n):

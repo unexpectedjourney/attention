@@ -5,10 +5,10 @@ from torch.utils.data import Dataset
 from torch.utils.data import DataLoader, random_split
 
 from datasets import load_dataset
-from tokenizer import Tokenizer
-from tokenizer.models import WordLevel
-from tokenizer.trainers import WordLevelTrainer
-from tokenizer.pre_tokenizers import Whitespace
+from tokenizers import Tokenizer
+from tokenizers.models import WordLevel
+from tokenizers.trainers import WordLevelTrainer
+from tokenizers.pre_tokenizers import Whitespace
 
 
 class BilingualDataset(Dataset):
@@ -148,8 +148,8 @@ def get_ds(config):
     max_len_tgt = 0
 
     for item in ds_raw:
-        src_ids = tokenizer_src.encode(item["translation"][config["lang_src"]]).idx
-        tgt_ids = tokenizer_tgt.encode(item["translation"][config["lang_tgt"]]).idx
+        src_ids = tokenizer_src.encode(item["translation"][config["lang_src"]]).ids
+        tgt_ids = tokenizer_tgt.encode(item["translation"][config["lang_tgt"]]).ids
         max_len_src = max(max_len_src, len(src_ids))
         max_len_tgt = max(max_len_tgt, len(tgt_ids))
 
