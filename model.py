@@ -27,13 +27,13 @@ class PositionalEncodding(nn.Module):
             torch.arange(0, d_model, 2, dtype=torch.float) * (-math.log(10000.0) / d_model)
         )
         pe = torch.zeros(seq_len, d_model)
-        pe[:, 0, ::2] = torch.sin(position * div_term)
-        pe[:, 1, ::2] = torch.cos(position * div_term)
+        pe[:, ::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
         pe = pe.unsqueeze(0)
         self.register_buffer("pe", pe)
 
     def forward(self, x):
-        x = x + (self.pe[:, :x.shape[1], :]).require_grad_(False)
+        x = x + (self.pe[:, :x.shape[1], :]).requires_grad_(False)
         x = self.dropout(x)
         return x
 
@@ -42,13 +42,13 @@ class LayerNormalization(nn.Module):
     def __init__(self, eps=10**-6):
         super().__init__()
         self.eps = eps
-        self.alpha = torch.Parameter(torch.ones(1))
-        self.bias = torch.Parameter(torch.zeros(1))
+        self.alpha = nn.Parameter(torch.ones(1))
+        self.bias = nn.Parameter(torch.zeros(1))
 
     def forward(self, x):
-        x_mean = x.mean(dim=-1, keep_dim=True)
-        x_std = x.std(dim=-1, keep_dim=True)
-        return self.alpha * (x - x_mean) / (x_std + self.eps) + self.beta
+        x_mean = x.mean(dim=-1, keepdim=True)
+        x_std = x.std(dim=-1, keepdim=True)
+        return self.alpha * (x - x_mean) / (x_std + self.eps) + self.bias
 
 
 class FeedForwardBlock(nn.Module):
@@ -75,7 +75,7 @@ class MultiHeadAttention(nn.Module):
 
         assert d_model % heads == 0, "d_model % heads != 0"
 
-        self.d_head = d_model / heads
+        self.d_head = d_model // heads
         self.w_q = nn.Linear(d_model, d_model)
         self.w_k = nn.Linear(d_model, d_model)
         self.w_v = nn.Linear(d_model, d_model)
@@ -285,8 +285,8 @@ class Transformer(nn.Module):
             )
             decoder_layers.append(decoder_block)
 
-        encoder = Encoder(nn.ModuleList([encoder_layers]))
-        decoder = Decoder(nn.ModuleList([decoder_layers]))
+        encoder = Encoder(nn.ModuleList(encoder_layers))
+        decoder = Decoder(nn.ModuleList(decoder_layers))
 
         projection_layer = ProjectionLayer(d_model, tgt_vocab_size)
 
