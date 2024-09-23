@@ -150,6 +150,7 @@ def train_model(config):
             proj_output = model.project(decoder_output)
 
             label = batch['label'].to(device)
+            print(proj_output)
 
             loss = loss_fn(
                 proj_output.view(-1, tokenizer_tgt.get_vocab_size()), label.view(-1)
@@ -166,7 +167,17 @@ def train_model(config):
 
             global_step += 1
 
-        validate_model(model, val_dataloader, tokenizer_src, tokenizer_tgt, config['seq_len'], device, lambda msg: batch_iterator.write(msg), global_step, writer)
+        validate_model(
+            model,
+            val_dataloader,
+            tokenizer_src,
+            tokenizer_tgt,
+            config['seq_len'],
+            device,
+            lambda msg: batch_iterator.write(msg),
+            global_step,
+            writer
+        )
 
         model_filename = get_weights_file_path(config, f"{epoch:02d}")
         torch.save({
